@@ -44,6 +44,12 @@
 #include "chidbInt.h"
 #include "btree.h"
 
+#define DEFAULT_CURSOR_MAX_DEPTH (5)
+
+#define CHIDB_CURSOR_ENONEXT (1)
+#define CHIDB_CURSOR_EKEYNOTFOUND (2)
+#define CHIDB_CURSOR_ENOPREV (3)
+
 typedef enum chidb_dbm_cursor_type
 {
     CURSOR_UNSPECIFIED,
@@ -53,13 +59,22 @@ typedef enum chidb_dbm_cursor_type
 
 typedef struct chidb_dbm_cursor
 {
+    BTree* bt;
     chidb_dbm_cursor_type_t type;
-
-    /* Your code goes here */
-
+    uint8_t depth; // depth of current page
+    uint8_t max_depth; // size of cells and nodes, to see if we need to realloc
+    // things that need to be freed
+    ncell_t* cells; // current cell number at each node, i.e., cells[i] is the current cell for the node at depth i
+    BTreeNode** nodes; // nodes in path to root
 } chidb_dbm_cursor_t;
 
 /* Cursor function definitions go here */
-
+int chidb_dbm_cursor_init(chidb_dbm_cursor_t* cursor, chidb_dbm_cursor_type_t type, BTree* bt, npage_t nroot);
+int chidb_dbm_cursor_free(chidb_dbm_cursor_t* cursor);
+int chidb_dbm_cursor_rewind(chidb_dbm_cursor_t* cur);
+int chidb_dbm_cursor_next(chidb_dbm_cursor_t* cursor);
+int chidb_dbm_cursor_seek(chidb_dbm_cursor_t* cursor, chidb_key_t key);
+int chidb_dbm_cursor_seekge(chidb_dbm_cursor_t* cursor, chidb_key_t key);
+int chidb_dbm_cursor_seekgt(chidb_dbm_cursor_t* cursor, chidb_key_t key);
 
 #endif /* DBM_CURSOR_H_ */

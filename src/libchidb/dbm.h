@@ -52,4 +52,7 @@ char* chidb_stmt_rr_str(chidb_stmt *stmt, char sep);
 int chidb_stmt_rr_print(chidb_stmt *stmt, char sep);
 int chidb_stmt_print(chidb_stmt *stmt);
 
+int realloc_reg(chidb_stmt *stmt, uint32_t size);
+int realloc_cur(chidb_stmt *stmt, uint32_t size);
+
 #endif /* DBM_H_ */
