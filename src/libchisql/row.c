@@ -8,8 +8,8 @@ Row_t *Row_makeFirst(Column_t *cols)
     {
         row->size += Column_getSize(c);
         row->num_cols++;
-        row->
-        c = c->next;
+        /*row->*/
+                c = c->next;
     }
 
 }

@@ -1,5 +1,5 @@
-#include "common.h"
-#include "column.h"
+#include "chisql/common.h"
+#include "chisql/column.h"
 
 typedef struct DBTable_s {
    

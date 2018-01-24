@@ -11,7 +11,6 @@
 \*****************************************************************************/
 #include <unistd.h>
 #include <stdlib.h>
-#include <histedit.h>
 #include <string.h>
 #include <chidb/chidb.h>
 #include <chidb/log.h>
@@ -19,15 +18,8 @@
 #include "commands.h"
 
 
-char *prompt(EditLine *e)
-{
-    return "chidb> ";
-}
-
 int main(int argc, char *argv[])
 {
-    EditLine *el;
-    History *hist;
     int opt;
     int rc;
     int verbosity = 0;
@@ -90,62 +82,7 @@ int main(int argc, char *argv[])
     {
         chidb_shell_handle_cmd(&shell_ctx, command);
     }
-    else
-    {
-        HistEvent ev;
 
-        /* Initialize EditLine */
-        el = el_init(argv[0], stdin, stdout, stderr);
-        el_set(el, EL_PROMPT, &prompt);
-        el_set(el, EL_EDITOR, "emacs");
-
-        /* Initialize the history */
-        hist = history_init();
-        if (hist == 0)
-        {
-            fprintf(stderr, "ERROR: Could not initialize history.\n");
-            return 1;
-        }
-        history(hist, &ev, H_SETSIZE, 100); // 100 elements in history
-        el_set(el, EL_HIST, history, hist); // history callback
-
-        while (1)
-        {
-            int count;
-            const char *cmd;
-            char *cmd2;
-
-            cmd = el_gets(el, &count);
-
-            if (count == 0)
-            {
-                putchar('\n');
-                break;
-            }
-            else if (count == 1)
-            {
-                continue;
-            }
-            else
-            {
-                cmd2 = strdup(cmd);
-
-                /* TODO: Do better whitespace stripping */
-                if(cmd2[strlen(cmd2)-1] == '\n')
-                    cmd2[strlen(cmd2)-1] = '\0';
-
-                history(hist, &ev, H_ENTER, cmd2); // Add to history
-
-                chidb_shell_handle_cmd(&shell_ctx, cmd2);
-                free(cmd2);
-            }
-
-        }
-
-
-        history_end(hist);
-        el_end(el);
-    }
 
     return 0;
 }

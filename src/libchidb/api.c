@@ -43,6 +43,7 @@
 
 #include <stdlib.h>
 #include <chidb/chidb.h>
+#include <chisql/chisql.h>
 #include "dbm.h"
 #include "btree.h"
 #include "record.h"

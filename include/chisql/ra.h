@@ -5,7 +5,7 @@
 #include "condition.h"
 #include "column.h"
 
-/*
+/* Relation Algebra
 RA_t in Haskell
 data RA_t = Table String
         | Select Expression_t RA_t -- see below for Expression_t def

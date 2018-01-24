@@ -30,6 +30,7 @@ extern "C" {
 #include <inttypes.h>
 #include <errno.h>
 #include <sys/types.h>
+#include "winsock2.h"
 
 #ifndef SIMCLIST_NO_DUMPRESTORE
 #   ifndef _WIN32

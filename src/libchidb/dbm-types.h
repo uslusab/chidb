@@ -42,7 +42,7 @@
 #define DBM_TYPES_H_
 
 #include <stdbool.h>
-#include <chidb/chisql.h>
+#include <chisql/chisql.h>
 #include "chidbInt.h"
 #include "dbm-cursor.h"
 

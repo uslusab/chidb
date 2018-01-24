@@ -42,10 +42,10 @@
 #define DBM_FILE_H_
 
 #include <stdbool.h>
-#include "simclist.h"
 #include "chidbInt.h"
 #include "dbm-types.h"
 #include <chidb/dbm-file.h>
+#include <simclist.h>
 
 #define MAX_FILENAME_SIZE (256)
 

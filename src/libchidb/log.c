@@ -91,12 +91,12 @@ void __chilog(loglevel_t level, char *file, int line, char *fmt, ...)
         break;
     }
 
-    flockfile(stdout);
+    //flockfile(stdout);
     printf(" %6s %-30s ", levelstr, buf);
     va_start(argptr, fmt);
     vprintf(fmt, argptr);
     printf("\n");
-    funlockfile(stdout);
+    //funlockfile(stdout);
     va_end(argptr);
     fflush(stdout);
 }
