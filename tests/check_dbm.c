@@ -71,7 +71,7 @@ START_TEST (test_dbm)
                 ck_assert_msg(strcmp(expected->value.s, actual->value.s) == 0,
                         "Expected register %i to have value '%s' but it has value '%s'", nReg, expected->value.s, actual->value.s);
                 break;
-            case REG_BINARY:
+            case REGISTER_BINARY:
                 /* TODO: Check value. Currently not supported by DMB file format. */
                 break;
             case REG_UNSPECIFIED:

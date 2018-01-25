@@ -342,7 +342,7 @@ int chidb_dbm_cmp (chidb_stmt *stmt, chidb_dbm_op_t *op)
 
     // assume both regs are the same type (this is what the spec says)
     switch (r1->type) {
-        case REG_BINARY:
+        case REGISTER_BINARY:
             if (r1->value.bin.nbytes <= r2->value.bin.nbytes) {
                 return memcmp(r2->value.bin.bytes,
                               r1->value.bin.bytes,

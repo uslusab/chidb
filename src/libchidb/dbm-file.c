@@ -295,7 +295,7 @@ int __chidb_dbm_file_parse_register(char *line, chidb_dbm_file_register_t *reg)
     }
     else if (strcmp(tokens[1], "binary") == 0)
     {
-        reg->reg.type = REG_BINARY;
+        reg->reg.type = REGISTER_BINARY;
     }
     else
         return CHIDB_EPARSE;

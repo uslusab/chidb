@@ -41,6 +41,7 @@
 #endif
 
 #include <inttypes.h>
+
 typedef int8_t flex_int8_t;
 typedef uint8_t flex_uint8_t;
 typedef int16_t flex_int16_t;
@@ -1370,7 +1371,7 @@ case 73:
 /* rule 73 can match eol */
 YY_RULE_SETUP
 #line 98 "src/libchisql/sql.l"
-{ yylval.strval = strndup(yytext+1, strlen(yytext) - 2); return STRING_LITERAL; }
+{/* yylval.strval = strndup*(yytext+1, strlen(yytext) - 2); return STRING_LITERAL; */}
 	YY_BREAK
 case 74:
 YY_RULE_SETUP

@@ -59,6 +59,69 @@ int chidb_stmt_optimize(chidb *db,
 
   /* your code */
 
+/* aux function to load schema table into in-mem rep */
+int load_schema(chidb *db, npage_t nroot)
+{
+    BTree *bt = db->bt;
+
+    BTreeNode *btn;
+
+    int i;
+    int status;
+
+    // get BTree Node
+    if ((status = chidb_Btree_getNodeByPage(bt, nroot, &btn)) != CHIDB_OK)
+        return status;
+    for (i = 0; i < btn->n_cells; i++) {
+        BTreeCell *cell = malloc(sizeof(BTreeCell));
+        if(chidb_Btree_getCell(btn, i, cell) != CHIDB_OK)
+            return CHIDB_ECELLNO;
+
+        // if we are at an internal node
+        if(btn->type == PGTYPE_TABLE_INTERNAL) {
+
+            return load_schema(db, cell->fields.tableInternal.child_page);
+
+        } else if(btn->type == PGTYPE_TABLE_LEAF) {
+            DBRecord *dbr;
+            char *sql;
+            chidb_DBRecord_unpack(&dbr, cell->fields.tableLeaf.data);
+
+            chidb_sql_schema_t *schema = malloc(sizeof(chidb_sql_schema_t));
+
+
+            chidb_DBRecord_getString(dbr, 0, &(schema)->type);
+            chidb_DBRecord_getString(dbr, 1, &(schema)->name);
+            chidb_DBRecord_getString(dbr, 2, &(schema)->assoc);
+            chidb_DBRecord_getInt32(dbr, 3, &(schema)->rpage);
+            chidb_DBRecord_getString(dbr, 4, &sql);
+
+            chisql_statement_t *stmt;
+            chisql_parser(sql, &stmt);
+
+            schema->stmt = stmt;
+
+            list_append(&db->schemas, schema);
+
+            free(sql);
+            chidb_DBRecord_destroy(dbr);
+        }
+
+        free(cell);
+    }
+
+    // If we are at an internal node, traverse right page
+    if (btn->type != PGTYPE_TABLE_LEAF) {
+        i = btn->right_page;
+
+        return load_schema(db, i);
+    }
+
+    chidb_Btree_freeMemNode(bt, btn);
+
+    return CHIDB_OK;
+}
+
 int chidb_open(const char *file, chidb **db)
 {
     *db = malloc(sizeof(chidb));
@@ -185,7 +248,7 @@ int chidb_column_type(chidb_stmt *stmt, int col)
 			switch(r->type)
 			{
 			case REG_UNSPECIFIED:
-			case REG_BINARY:
+			case REGISTER_BINARY:
 				return SQL_NOTVALID;
 				break;
 			case REG_NULL:

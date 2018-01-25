@@ -167,7 +167,7 @@ typedef enum register_type
     REG_NULL           = 1,
     REG_INT32          = 2,
     REG_STRING         = 3,
-    REG_BINARY         = 4
+    REGISTER_BINARY         = 4
 } register_type_t;
 
 static inline const char* regtype_to_str(register_type_t regtype)
@@ -182,7 +182,7 @@ static inline const char* regtype_to_str(register_type_t regtype)
         return "integer";
     case REG_STRING:
         return "string";
-    case REG_BINARY:
+    case REGISTER_BINARY:
         return "binary";
     default:
         return "unknown";

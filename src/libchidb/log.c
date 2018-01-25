@@ -47,7 +47,7 @@
 
 
 /* Logging level. Set by default to print just errors */
-static int loglevel = ERROR;
+static int loglevel = LOG_ERROR;
 
 
 void chilog_setloglevel(loglevel_t level)
@@ -71,7 +71,7 @@ void __chilog(loglevel_t level, char *file, int line, char *fmt, ...)
     case CRITICAL:
         levelstr = "CRITIC";
         break;
-    case ERROR:
+    case LOG_ERROR:
         levelstr = "ERROR";
         break;
     case WARNING:

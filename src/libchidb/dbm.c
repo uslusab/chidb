@@ -255,7 +255,7 @@ char* chidb_stmt_reg_str(chidb_dbm_register_t *r)
     case REG_STRING:
         snprintf(s, MAX_STR_LEN, "\"%s\"", r->value.s);
         break;
-    case REG_BINARY:
+    case REGISTER_BINARY:
         snprintf(s, MAX_STR_LEN, "(%i bytes)", r->value.bin.nbytes);
         break;
     }

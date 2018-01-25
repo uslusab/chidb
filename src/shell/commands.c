@@ -21,6 +21,7 @@ struct handler_entry handlers[] =
     		                  "                     list    Values delimited by | (default)"),
     HANDLER_ENTRY (explain,   ".explain on|off    Turn output mode suitable for EXPLAIN on or off."),
     HANDLER_ENTRY (help,      ".help              Show this message"),
+    HANDLER_ENTRY (exit,      ".exit              Exit shell."),
 
     NULL_ENTRY
 };
@@ -454,3 +455,12 @@ int chidb_shell_handle_cmd_help(chidb_shell_ctx_t *ctx, struct handler_entry *e,
     return CHIDB_OK;
 }
 
+int chidb_shell_handle_cmd_exit(chidb_shell_ctx_t *ctx, struct handler_entry *e, const char **tokens, int ntokens){
+    if(ctx->db)
+    {
+        chidb_close(ctx->db);
+        free(ctx->dbfile);
+    }
+    exit(0);
+    return CHIDB_OK;
+};

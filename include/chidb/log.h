@@ -5,7 +5,7 @@
 /* Log levels */
 typedef enum {
     CRITICAL = 10,
-    ERROR    = 20,
+    LOG_ERROR    = 20,
     WARNING  = 30,
     INFO     = 40,
     DEBUG    = 50,
