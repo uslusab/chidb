@@ -43,12 +43,9 @@
 
 #include "chidbInt.h"
 #include "btree.h"
+#include "../simclist/simclist.h"
 
-#define DEFAULT_CURSOR_MAX_DEPTH (5)
-
-#define CHIDB_CURSOR_ENONEXT (1)
-#define CHIDB_CURSOR_EKEYNOTFOUND (2)
-#define CHIDB_CURSOR_ENOPREV (3)
+typedef uint32_t ncol_t;   // number of columns a table has OR the number of a column
 
 typedef enum chidb_dbm_cursor_type
 {
@@ -57,24 +54,66 @@ typedef enum chidb_dbm_cursor_type
     CURSOR_WRITE
 } chidb_dbm_cursor_type_t;
 
+typedef enum chidb_dbm_seek_type
+{
+    SEEK,
+    SEEKLE,
+    SEEKGE,
+    SEEKLT,
+    SEEKGT
+} chidb_dbm_seek_type_t;
+
+typedef struct chidb_dbm_cursor_trail
+{
+    uint32_t depth; // 0 indexed from root
+
+    BTreeNode *btn; // data structure representation w/ mempage
+
+    int n_current_cell; // cell whose child page we're currently down
+} chidb_dbm_cursor_trail_t;
+
 typedef struct chidb_dbm_cursor
 {
-    BTree* bt;
+    BTreeCell current_cell; // access to data (current table cell the cursor is pointing to)
+
+    npage_t root_page;      // root page of the table in case of reloading
+    uint8_t root_type;      // type of page the root is (can be any of the four)
+
+    ncol_t n_cols;          // number of columns in the table
+    list_t trail;           // holds chidb_dbm_cursor_trail
+
     chidb_dbm_cursor_type_t type;
-    uint8_t depth; // depth of current page
-    uint8_t max_depth; // size of cells and nodes, to see if we need to realloc
-    // things that need to be freed
-    ncell_t* cells; // current cell number at each node, i.e., cells[i] is the current cell for the node at depth i
-    BTreeNode** nodes; // nodes in path to root
+
 } chidb_dbm_cursor_t;
 
 /* Cursor function definitions go here */
-int chidb_dbm_cursor_init(chidb_dbm_cursor_t* cursor, chidb_dbm_cursor_type_t type, BTree* bt, npage_t nroot);
-int chidb_dbm_cursor_free(chidb_dbm_cursor_t* cursor);
-int chidb_dbm_cursor_rewind(chidb_dbm_cursor_t* cur);
-int chidb_dbm_cursor_next(chidb_dbm_cursor_t* cursor);
-int chidb_dbm_cursor_seek(chidb_dbm_cursor_t* cursor, chidb_key_t key);
-int chidb_dbm_cursor_seekge(chidb_dbm_cursor_t* cursor, chidb_key_t key);
-int chidb_dbm_cursor_seekgt(chidb_dbm_cursor_t* cursor, chidb_key_t key);
+int chidb_dbm_cursor_print(chidb_dbm_cursor_t *c);
+
+int chidb_dbm_cursor_trail_new(BTree *bt, chidb_dbm_cursor_trail_t **ct, npage_t npage, uint32_t depth);
+int chidb_dbm_cursor_trail_list_destroy(BTree *bt, list_t *restrict l);
+int chidb_dbm_cursor_trail_cpy(BTree *bt, list_t *restrict l1, list_t *restrict l2);
+int chidb_dbm_cursor_clear_trail_from(BTree *bt, chidb_dbm_cursor_t *c, uint32_t depth); // clears everything NOT INCLUDING given depth
+int chidb_dbm_cursor_trail_remove_at(BTree *bt, chidb_dbm_cursor_t *c, uint32_t depth);
+
+int chidb_dbm_cursor_init(BTree *bt, chidb_dbm_cursor_t *c, npage_t root_page, ncol_t n_cols);
+int chidb_dbm_cursor_destroy(BTree *bt, chidb_dbm_cursor_t *c);
+
+int chidb_dbm_cursor_fwd(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorTable_fwd(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorTable_fwdUp(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorTable_fwdDwn(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorIndex_fwd(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorIndex_fwdUp(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorIndex_fwdDwn(BTree *bt, chidb_dbm_cursor_t *c);
+
+int chidb_dbm_cursor_rev(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorTable_rev(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorTable_revUp(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorTable_revDwn(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorIndex_rev(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorIndex_revUp(BTree *bt, chidb_dbm_cursor_t *c);
+int chidb_dbm_cursorIndex_revDwn(BTree *bt, chidb_dbm_cursor_t *c);
+
+int chidb_dbm_cursor_seek(BTree *bt, chidb_dbm_cursor_t *c, chidb_key_t key, npage_t next, int depth, int seek_type);
 
 #endif /* DBM_CURSOR_H_ */

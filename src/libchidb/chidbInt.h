@@ -49,7 +49,8 @@
 #include <assert.h>
 #include <string.h>
 #include <chidb/chidb.h>
-#include "simclist.h"
+#include "../simclist/simclist.h"
+
 
 // Private codes (shouldn't be used by API users)
 #define CHIDB_NOHEADER (1)
@@ -61,6 +62,16 @@
 #define CHIDB_EDUPLICATE (8)
 #define CHIDB_EEMPTY (9)
 #define CHIDB_EPARSE (10)
+
+#define CHIDB_ETYPE (11) // invalid type in switch stmt
+#define CHIDB_ENOREG (37) //Error accessing register
+
+
+#define CHIDB_CURSORCANTMOVE (40)
+#define CHIDB_PROBLEM (500)
+#define CHIDB_TRUE (1000)
+#define CHIDB_FALSE (-1000)
+#define CHIDB_DELETE (666)
 
 
 #define DEFAULT_PAGE_SIZE (1024)
@@ -84,8 +95,6 @@ typedef struct chidb_sql_schema
     chisql_statement_t *stmt;
 } chidb_sql_schema_t;
 
-
-/* code */
 
 /* A chidb database is initially only a BTree.
  * This presuposes that only the btree.c module has been implemented.

@@ -106,13 +106,13 @@ int __chidb_dbm_file_read_line(FILE *f, char* line)
 
 int __chidb_dbm_is_sql(char* line)
 {
-	char *s = line;
+    char *s = line;
 
-	while(isspace(*s)) s++;
+    while(isspace(*s)) s++;
 
-	return (strncasecmp("SELECT", s, 6) == 0 || strncasecmp("INSERT", s, 6) == 0 ||
-			strncasecmp("UPDATE", s, 6) == 0 || strncasecmp("DELETE", s, 6) == 0 ||
-			strncasecmp("CREATE", s, 6) == 0);
+    return (strncasecmp("SELECT", s, 6) == 0 || strncasecmp("INSERT", s, 6) == 0 ||
+            strncasecmp("UPDATE", s, 6) == 0 || strncasecmp("DELETE", s, 6) == 0 ||
+            strncasecmp("CREATE", s, 6) == 0);
 }
 
 int __chidb_dbm_file_load_db(chidb_dbm_file_t *dbmf, char *line, const char* dbfiledir, const char* genfiledir)
@@ -404,84 +404,84 @@ int __chidb_dbm_file_load(const char* filename, chidb_dbm_file_t **_dbmf, chidb 
 
         switch(section)
         {
-        case CHIDB_FILE:
-            if(dbmf->db == NULL)
-            {
-                rc = __chidb_dbm_file_load_db(dbmf, line, dbfiledir, genfiledir);
+            case CHIDB_FILE:
+                if(dbmf->db == NULL)
+                {
+                    rc = __chidb_dbm_file_load_db(dbmf, line, dbfiledir, genfiledir);
+                    if (rc != CHIDB_OK)
+                    {
+                        // "Error parsing line: '%s'", line
+                        return rc;
+                    }
+                }
+                break;
+            case PROGRAM:
+                if(program_type == UNKNOWN)
+                {
+                    if(__chidb_dbm_is_sql(line))
+                        program_type = SQL;
+                    else
+                        program_type = DBM;
+                }
+
+                if(program_type == DBM)
+                {
+                    rc = __chidb_dbm_file_parse_instruction(line, &op);
+                    if (rc != CHIDB_OK)
+                    {
+                        // "Error parsing line: '%s'", line
+                        return rc;
+                    }
+                    chidb_stmt_set_op(&dbmf->stmt, &op, opnum++);
+                }
+                else
+                {
+                    chisql_statement_t *sql_stmt, *sql_stmt_opt;
+
+                    rc = chisql_parser(line, &sql_stmt);
+
+                    if(rc != CHIDB_OK)
+                    {
+                        return rc;
+                    }
+
+                    rc = chidb_stmt_optimize(&dbmf->stmt, sql_stmt, &sql_stmt_opt);
+
+                    if(rc != CHIDB_OK)
+                    {
+                        return rc;
+                    }
+
+                    rc = chidb_stmt_codegen(&dbmf->stmt, sql_stmt_opt);
+
+                    if(rc != CHIDB_OK)
+                    {
+                        return rc;
+                    }
+                }
+                break;
+            case QUERY_RESULT:
+                rc = __chidb_dbm_file_read_rr(line, &row, &nCols);
+                if (rc != CHIDB_OK)
+                    return rc;
+
+                if (dbmf->stmt.nCols == 0 || program_type == SQL)
+                    dbmf->stmt.nCols = nCols;
+                else if(dbmf->stmt.nCols != nCols)
+                    return CHIDB_EPARSE;
+
+                list_append(&dbmf->queryResults, row);
+                break;
+            case REGISTERS:
+                reg = malloc(sizeof(chidb_dbm_file_register_t));
+                rc = __chidb_dbm_file_parse_register(line, reg);
                 if (rc != CHIDB_OK)
                 {
-                    // "Error parsing line: '%s'", line
+                    free(reg);
                     return rc;
                 }
-            }
-            break;
-        case PROGRAM:
-        	if(program_type == UNKNOWN)
-        	{
-        		if(__chidb_dbm_is_sql(line))
-        			program_type = SQL;
-        		else
-        			program_type = DBM;
-        	}
-
-        	if(program_type == DBM)
-        	{
-				rc = __chidb_dbm_file_parse_instruction(line, &op);
-				if (rc != CHIDB_OK)
-				{
-					// "Error parsing line: '%s'", line
-					return rc;
-				}
-				chidb_stmt_set_op(&dbmf->stmt, &op, opnum++);
-        	}
-        	else
-        	{
-        		chisql_statement_t *sql_stmt, *sql_stmt_opt;
-
-        		rc = chisql_parser(line, &sql_stmt);
-
-        	    if(rc != CHIDB_OK)
-        	    {
-        	        return rc;
-        	    }
-
-        	    rc = chidb_stmt_optimize(&dbmf->stmt, sql_stmt, &sql_stmt_opt);
-
-        	    if(rc != CHIDB_OK)
-        	    {
-        	        return rc;
-        	    }
-
-        	    rc = chidb_stmt_codegen(&dbmf->stmt, sql_stmt_opt);
-
-        	    if(rc != CHIDB_OK)
-        	    {
-        	        return rc;
-        	    }
-        	}
-            break;
-        case QUERY_RESULT:
-            rc = __chidb_dbm_file_read_rr(line, &row, &nCols);
-            if (rc != CHIDB_OK)
-                return rc;
-
-            if (dbmf->stmt.nCols == 0 || program_type == SQL)
-                dbmf->stmt.nCols = nCols;
-            else if(dbmf->stmt.nCols != nCols)
-                return CHIDB_EPARSE;
-
-            list_append(&dbmf->queryResults, row);
-            break;
-        case REGISTERS:
-            reg = malloc(sizeof(chidb_dbm_file_register_t));
-            rc = __chidb_dbm_file_parse_register(line, reg);
-            if (rc != CHIDB_OK)
-            {
-                free(reg);
-                return rc;
-            }
-            list_append(&dbmf->registers, reg);
-            break;
+                list_append(&dbmf->registers, reg);
+                break;
         }
     }
 
