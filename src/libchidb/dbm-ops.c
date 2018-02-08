@@ -551,10 +551,10 @@ int chidb_dbm_op_MakeRecord (chidb_stmt *stmt, chidb_dbm_op_t *op)
     chidb_DBRecord_destroy(dbr);
 
     // this checks the reg, but does not write the data because there are more fields to set than normal
-    if (chidb_dbm_op_WriteReg(stmt, r2, REG_BINARY, NULL) != CHIDB_OK)
+    if (chidb_dbm_op_WriteReg(stmt, r2, REGISTER_BINARY, NULL) != CHIDB_OK)
         return CHIDB_PROBLEM;
 
-    reg2->type = REG_BINARY;
+    reg2->type = REGISTER_BINARY;
     reg2->value.bin.nbytes = packed_len;
     reg2->value.bin.bytes = record;
 

@@ -170,5 +170,4 @@ int chidb_Btree_insert(BTree *bt, npage_t nroot, BTreeCell *btc);
 int chidb_Btree_insertNonFull(BTree *bt, npage_t npage, BTreeCell *btc);
 int chidb_Btree_split(BTree *bt, npage_t npage_parent, npage_t npage_child, ncell_t parent_cell, npage_t *npage_child2);
 
-
 #endif /*BTREE_H_*/

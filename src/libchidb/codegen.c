@@ -39,7 +39,6 @@
 
 #include <chidb/chidb.h>
 #include <chisql/chisql.h>
-#include <simclist.h>
 #include "dbm.h"
 #include "util.h"
 
@@ -74,7 +73,7 @@ chidb_dbm_op_t *chidb_make_op(opcode_t code, int32_t p1, int32_t p2, int32_t p3,
 
 //Standardized function for error checking
 int chidb_stmt_check(chidb_stmt *stmt, chisql_statement_t *sql_stmt, list_t table_names)
-{
+{   
     // checks for table existence
     list_init(&table_names);
     list_t col_names;
@@ -122,7 +121,7 @@ int chidb_stmt_create(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
 
     // clipping the semicolon
     (sql_stmt->text)[strlen(sql_stmt->text)-1] = '\0';
-
+    
 
 
     // the type field of record is set to "table"... for now...
@@ -279,7 +278,7 @@ int chidb_stmt_insert(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
         // There seems to be a leak having to do with set_op but I can't figure out how to plug it...
     }
 
-    //Free everything!
+    //Free everything! 
     chidb_dbm_op_t *op_free;
     while(!list_empty(&ops))
     {
@@ -296,7 +295,7 @@ int chidb_stmt_insert(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
 
 /********************** Step 2: Simple Select Code Generation ***********************/
 
-/*
+/* 
  * assumes well-formed sql queries abiding by project spec limitations.
  * note: sra_select != NULL means there is a WHERE
  *       sra_table2 != NULL means there is a NATURAL JOIN
@@ -328,7 +327,7 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
 
     SRA_t *sra_next = sql_stmt->stmt.select;
     char *next_name;
-
+    
     while(sra_next != NULL)
     {
         switch (sra_next->t)
@@ -383,7 +382,7 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
                     {
                         // chilog warning!! table doesn't exist
                         fprintf(stderr, "%s\n", "fuck");
-                        return CHIDB_EINVALIDSQL;
+                        return CHIDB_EINVALIDSQL; 
                     }
 
                 }
@@ -415,17 +414,17 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
     if(*first_col == '*')
     {
         // fprintf(stderr, "%s\n", "star needed expanding");
-
+        
         // Expand the star so that no longer a special case of selecting
         chidb_stmt_select_star_expand(sra_project, cnames1, cnames2);
     }
 
-    // Populate the select names list
+    // Populate the select names list 
     expr_next = sra_project->expr_list;
     while(expr_next != NULL)
     {
         // Add to the select names list
-        list_append(&snames, expr_next->expr.term.ref->columnName);
+        list_append(&snames, expr_next->expr.term.ref->columnName); 
 
         // Update for next iteration
         expr_next = expr_next->next;
@@ -444,7 +443,7 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
     int c1_reg;
     int c2_reg = 0;
     int comp_nj_t1_reg;
-    int comp_nj_t2_reg;
+    int comp_nj_t2_reg; 
     int first_col_reg;  // Either last cursor reg + 1 or comp_nj_t2_reg + 1;
 
     // Instruction offsets
@@ -465,9 +464,9 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
 
     // These are used only in the case of having select
     // Documentation says: column OP value. we say comp_column comp_op comp_value
-    ColumnReference_t *comp_column;
-    Literal_t *comp_value;
-    enum CondType comp_op;
+    ColumnReference_t *comp_column; 
+    Literal_t *comp_value;         
+    enum CondType comp_op; 
 
     // *** If we have a where, insert the comp value at first instruction ***
     if(sra_select != NULL)
@@ -493,10 +492,10 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
                 break;
 
             case TYPE_TEXT:
-                new_op = chidb_make_op(Op_String,
-                                       strlen(comp_value->val.strval),
-                                       comp_val_reg,
-                                       0,
+                new_op = chidb_make_op(Op_String, 
+                                       strlen(comp_value->val.strval), 
+                                       comp_val_reg, 
+                                       0, 
                                        comp_value->val.strval);
                 list_append(&ops, new_op);
                 break;
@@ -563,7 +562,7 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
 
         // Get the column position to get the column with op_key or op_column
         col_pos = chidb_column_position(&cnames1, comp_column->columnName);
-        col_c_reg = c1_reg;
+        col_c_reg = c1_reg; 
         if(sra_table2 != NULL && col_pos < 0) // if not found in first table
         {
             col_pos = chidb_column_position(&cnames2, comp_column->columnName);
@@ -696,16 +695,16 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
 
         // Get the column position to get the column with op_key or op_column
         col_pos = chidb_column_position(&cnames1, next_col_name);
-
+        
         col_c_reg = c1_reg;
-
+ 
         if(sra_table2 != NULL && col_pos < 0) // If not found in first table
         {
             // fprintf(stderr, "%s\n", "Considering second column\n");
             col_pos = chidb_column_position(&cnames2, next_col_name);
             col_c_reg = c2_reg;
         }
-
+        
         if(col_pos < 0) // Error checking (not found in either table)
         {
             // fprintf(stderr, "looking for column: %s\n", next_col_name);
@@ -800,7 +799,7 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
     {
         chidb_dbm_op_t *next = (chidb_dbm_op_t *)list_get_at(&ops, j);
         chidb_stmt_set_op(stmt, next, j);
-
+        
         // should be able to free the op now...
         free(next);
     }
@@ -809,7 +808,7 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
     char **cols = malloc(sizeof(char *) * list_size(&snames));
     for(j=0; j < list_size(&snames); j++)
     {
-        cols[j] = strdup(list_get_at(&snames, j));
+        cols[j] = strdup(list_get_at(&snames, j)); 
     }
 
     // -------------------- fill in rest of stmt struct ----------------------
@@ -819,7 +818,7 @@ int chidb_stmt_select(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
     stmt->cols = cols;
     // --------------------convenience list destruction-----------------------
 
-    list_destroy(&tnames);
+    list_destroy(&tnames); 
     list_destroy(&cnames1);
     list_destroy(&cnames2);
     list_destroy(&snames);
@@ -848,7 +847,7 @@ int chidb_stmt_select_star_expand(SRA_Project_t *sra_project, list_t names, list
             // Free the original star
             free(next_ref->columnName);
 
-            // Overwrite the original column ref
+            // Overwrite the original column ref 
             next_ref->columnName = strdup(next_name);
 
             // Ignoring aliasing
@@ -857,14 +856,14 @@ int chidb_stmt_select_star_expand(SRA_Project_t *sra_project, list_t names, list
             first_done = 1;
         }
         else
-        {
+        {            
             // Populate all fields of new_term to add to new expression
             ExprTerm new_term;
             new_term.t = TERM_COLREF;
             new_term.ref = malloc(sizeof(ColumnReference_t));
 
             // Populate all fields of new expression
-            expr_to_add = malloc(sizeof(Expression_t));
+            expr_to_add = malloc(sizeof(Expression_t));            
             expr_to_add->t = EXPR_TERM;
             expr_to_add->expr.term = new_term;
             expr_to_add->alias = NULL;
@@ -873,7 +872,7 @@ int chidb_stmt_select_star_expand(SRA_Project_t *sra_project, list_t names, list
 
             // Append new expression to end
             next_expr->next = expr_to_add;
-
+            
             // Advance to the next expression
             next_expr = expr_to_add;
             next_ref = next_expr->expr.term.ref;
@@ -896,14 +895,14 @@ int chidb_stmt_select_star_expand(SRA_Project_t *sra_project, list_t names, list
             // fprintf(stderr, "next name is: %s\n", next_name);
             // Only add column to star expansion if exclusive to table2
             if(chidb_column_position(&names, next_name) < 0)
-            {
+            {            
                 // Populate all fields of new_term to add to new expression
                 ExprTerm new_term;
                 new_term.t = TERM_COLREF;
                 new_term.ref = malloc(sizeof(ColumnReference_t));
 
                 // Populate all fields of new expression
-                expr_to_add = malloc(sizeof(Expression_t));
+                expr_to_add = malloc(sizeof(Expression_t));            
                 expr_to_add->t = EXPR_TERM;
                 expr_to_add->expr.term = new_term;
                 expr_to_add->alias = NULL;
@@ -912,7 +911,7 @@ int chidb_stmt_select_star_expand(SRA_Project_t *sra_project, list_t names, list
 
                 // Append new expression to end
                 next_expr->next = expr_to_add;
-
+                
                 // Advance to the next expression
                 next_expr = expr_to_add;
                 next_ref = next_expr->expr.term.ref;
@@ -961,13 +960,13 @@ int chidb_stmt_codegen(chidb_stmt *stmt, chisql_statement_t *sql_stmt)
 
     switch(sql_stmt->type)
     {
-        case STMT_CREATE:
+        case STMT_CREATE: 
             ret =  chidb_stmt_create(stmt, sql_stmt);
             break;
-        case STMT_SELECT:
+        case STMT_SELECT: 
             ret =  chidb_stmt_select(stmt, sql_stmt);
             break;
-        case STMT_INSERT:
+        case STMT_INSERT: 
             ret =  chidb_stmt_insert(stmt, sql_stmt);
             break;
     }

@@ -2,6 +2,7 @@
 #define CHISQL_H_
 
 #include <stdint.h>
+#include "common.h"
 #include "create.h"
 #include "insert.h"
 #include "sra.h"
